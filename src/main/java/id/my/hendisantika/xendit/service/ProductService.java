@@ -56,4 +56,10 @@ public class ProductService {
         product.setStock(productDTO.getStock());
         return productRepository.save(product);
     }
+
+    @Transactional
+    public void deleteProduct(Long id) {
+        Product product = getProductById(id);
+        productRepository.delete(product);
+    }
 }
