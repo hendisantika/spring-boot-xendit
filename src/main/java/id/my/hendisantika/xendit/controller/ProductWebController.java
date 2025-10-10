@@ -116,4 +116,14 @@ public class ProductWebController {
         }
         return "redirect:/products";
     }
+
+    @GetMapping("/{id}")
+    public String viewProduct(@PathVariable Long id, Model model) {
+        Product product = productApiService.getProductById(id);
+        if (product == null) {
+            return "redirect:/products";
+        }
+        model.addAttribute("product", product);
+        return "products/detail";
+    }
 }
