@@ -63,4 +63,21 @@ public class XenditService {
         }
     }
 
+    public Map<String, Object> getInvoiceStatus(String invoiceId) {
+        try {
+            Invoice invoice = Invoice.getById(invoiceId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("invoice_id", invoice.getId());
+            response.put("external_id", invoice.getExternalId());
+            response.put("status", invoice.getStatus());
+            response.put("amount", invoice.getAmount());
+            response.put("paid_at", invoice.getPaidAt());
+
+            return response;
+
+        } catch (XenditException e) {
+            throw new RuntimeException("Failed to get invoice status: " + e.getMessage());
+        }
+    }
 }
