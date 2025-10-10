@@ -36,4 +36,14 @@ public class PaymentApiService {
                 .block();
         return response != null ? response.getData() : null;
     }
+
+    public Map<String, Object> getInvoiceStatus(String invoiceId) {
+        ApiResponse<Map<String, Object>> response = webClient.get()
+                .uri("/api/payments/invoice/{invoiceId}", invoiceId)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<Map<String, Object>>>() {
+                })
+                .block();
+        return response != null ? response.getData() : null;
+    }
 }
