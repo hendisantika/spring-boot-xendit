@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Checkout</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-shop"></i> Product Store
+        </a>
+    </div>
+</nav>
+
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-cart-check"></i> Checkout</h4>
+                </div>
+                <div class="card-body">
+                    <form action="/payments/create-invoice" method="post" th:object="${paymentRequest}">
+                        <input th:field="*{productId}" type="hidden">
+
+                        <div class="mb-3">
+                            <label class="form-label" for="quantity">Quantity <span class="text-danger">*</span></label>
+                            <input class="form-control" id="quantity" min="1"
+                                   onchange="calculateTotal()" required th:field="*{quantity}" th:max="${product.stock}"
+                                   type="number">
+                            <small class="text-muted">Available stock: <span th:text="${product.stock}">0</span></small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="customerName">Full Name <span
+                                    class="text-danger">*</span></label>
+                            <input class="form-control" id="customerName" required
+                                   th:field="*{customerName}" type="text">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="customerEmail">Email <span
+                                    class="text-danger">*</span></label>
+                            <input class="form-control" id="customerEmail" required
+                                   th:field="*{customerEmail}" type="email">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="paymentMethod">Payment Method <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select" id="paymentMethod" required th:field="*{paymentMethod}">
+                                <option value="BANK_TRANSFER">Bank Transfer</option>
+                                <option value="EWALLET">E-Wallet (OVO, DANA, LinkAja)</option>
+                                <option value="CREDIT_CARD">Credit Card</option>
+                                <option value="RETAIL_OUTLET">Retail Outlet (Alfamart, Indomaret)</option>
+                                <option value="QRIS">QRIS</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a class="btn btn-secondary" href="/products">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button class="btn btn-success" type="submit">
+                                <i class="bi bi-credit-card"></i> Proceed to Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Product</h6>
+                    <h5 th:text="${product.name}">Product Name</h5>
+                    <p class="text-muted small" th:text="${product.description}">Description</p>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Price per item:</span>
+                        <strong>Rp <span id="unitPrice"
+                                         th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">0</span></strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Quantity:</span>
+                        <strong><span id="qtyDisplay">1</span></strong>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <h5>Total:</h5>
+                        <h5 class="text-success">Rp <span id="totalPrice"
+                                                          th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">0</span>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const unitPrice = /*[[${product.price}]]*/ 0;
+
+    function calculateTotal() {
+        const quantity = document.getElementById('quantity').value;
+        const total = unitPrice * quantity;
+
+        document.getElementById('qtyDisplay').textContent = quantity;
+        document.getElementById('totalPrice').textContent = total.toLocaleString('id-ID');
+    }
+
+    document.getElementById('quantity').addEventListener('input', calculateTotal);
+</script>
+</body>
+</html>
