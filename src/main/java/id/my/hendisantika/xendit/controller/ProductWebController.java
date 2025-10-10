@@ -1,5 +1,6 @@
 package id.my.hendisantika.xendit.controller;
 
+import id.my.hendisantika.xendit.dto.ProductDTO;
 import id.my.hendisantika.xendit.entity.Product;
 import id.my.hendisantika.xendit.service.ProductApiService;
 import lombok.RequiredArgsConstructor;
@@ -43,4 +44,12 @@ public class ProductWebController {
         model.addAttribute("products", products);
         return "products/list";
     }
+
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("product", new ProductDTO());
+        model.addAttribute("isEdit", false);
+        return "products/form";
+    }
+
 }
