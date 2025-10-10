@@ -1,12 +1,16 @@
 package id.my.hendisantika.xendit.controller;
 
+import id.my.hendisantika.xendit.dto.ProductDTO;
 import id.my.hendisantika.xendit.entity.Product;
 import id.my.hendisantika.xendit.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,5 +59,15 @@ public class ProductController {
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+    }
+
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createProduct(@Valid @RequestBody ProductDTO productDTO) {
+        Product product = productService.createProduct(productDTO);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Product created successfully");
+        response.put("data", product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
