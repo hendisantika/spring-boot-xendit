@@ -65,4 +65,12 @@ public class PaymentWebController {
             return "redirect:/payments/checkout/" + paymentRequest.getProductId();
         }
     }
+
+    @GetMapping("/invoice")
+    public String showInvoice(Model model) {
+        if (!model.containsAttribute("invoiceData")) {
+            return "redirect:/products";
+        }
+        return "payments/invoice";
+    }
 }
