@@ -59,4 +59,15 @@ public class ProductApiService {
                 .block();
         return response != null ? response.getData() : null;
     }
+
+    public Product updateProduct(Long id, ProductDTO productDTO) {
+        ApiResponse<Product> response = webClient.put()
+                .uri("/api/products/{id}", id)
+                .bodyValue(productDTO)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<Product>>() {
+                })
+                .block();
+        return response != null ? response.getData() : null;
+    }
 }
