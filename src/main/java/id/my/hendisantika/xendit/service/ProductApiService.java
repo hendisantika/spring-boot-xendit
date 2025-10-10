@@ -35,4 +35,15 @@ public class ProductApiService {
                 .block();
         return response != null ? response.getData() : List.of();
     }
+
+    public Product getProductById(Long id) {
+        ApiResponse<Product> response = webClient.get()
+                .uri("/api/products/{id}", id)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<Product>>() {
+                })
+                .onErrorResume(e -> Mono.empty())
+                .block();
+        return response != null ? response.getData() : null;
+    }
 }
