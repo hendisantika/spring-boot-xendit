@@ -1,9 +1,18 @@
 package id.my.hendisantika.xendit.controller;
 
+import id.my.hendisantika.xendit.dto.PaymentRequestDTO;
 import id.my.hendisantika.xendit.service.XenditService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,4 +31,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentController {
 
     private final XenditService xenditService;
+
+    @PostMapping("/create-invoice")
+    public ResponseEntity<Map<String, Object>> createInvoice(
+            @Valid @RequestBody PaymentRequestDTO paymentRequest) {
+        try {
+            Map<String, Object> invoiceData = xenditService.createInvoice(paymentRequest);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Invoice created successfully");
+            response.put("data", invoiceData);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
 }
