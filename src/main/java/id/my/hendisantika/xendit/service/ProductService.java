@@ -67,4 +67,14 @@ public class ProductService {
     public List<Product> searchProducts(String name) {
         return productRepository.findByNameContainingIgnoreCase(name);
     }
+
+    @Transactional
+    public Product reduceStock(Long productId, Integer quantity) {
+        Product product = getProductById(productId);
+        if (product.getStock() < quantity) {
+            throw new RuntimeException("Insufficient stock for product: " + product.getName());
+        }
+        product.setStock(product.getStock() - quantity);
+        return productRepository.save(product);
+    }
 }
