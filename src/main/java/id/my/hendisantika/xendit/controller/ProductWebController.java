@@ -88,4 +88,19 @@ public class ProductWebController {
         model.addAttribute("isEdit", true);
         return "products/form";
     }
+
+    @PostMapping("/{id}")
+    public String updateProduct(
+            @PathVariable Long id,
+            @ModelAttribute ProductDTO productDTO,
+            RedirectAttributes redirectAttributes) {
+        try {
+            productApiService.updateProduct(id, productDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Product updated successfully!");
+            return "redirect:/products";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to update product: " + e.getMessage());
+            return "redirect:/products/" + id + "/edit";
+        }
+    }
 }
