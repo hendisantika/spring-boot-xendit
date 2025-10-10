@@ -46,4 +46,14 @@ public class ProductService {
         product.setStock(productDTO.getStock());
         return productRepository.save(product);
     }
+
+    @Transactional
+    public Product updateProduct(Long id, ProductDTO productDTO) {
+        Product product = getProductById(id);
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setStock(productDTO.getStock());
+        return productRepository.save(product);
+    }
 }
