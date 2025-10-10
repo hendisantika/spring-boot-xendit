@@ -83,4 +83,17 @@ public class ProductApiService {
             return false;
         }
     }
+
+    public List<Product> searchProducts(String name) {
+        ApiResponse<List<Product>> response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/products/search")
+                        .queryParam("name", name)
+                        .build())
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<Product>>>() {
+                })
+                .block();
+        return response != null ? response.getData() : List.of();
+    }
 }
