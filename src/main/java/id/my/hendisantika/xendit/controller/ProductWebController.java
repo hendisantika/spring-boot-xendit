@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -67,5 +68,24 @@ public class ProductWebController {
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to create product: " + e.getMessage());
             return "redirect:/products/new";
         }
+    }
+
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Product product = productApiService.getProductById(id);
+        if (product == null) {
+            return "redirect:/products";
+        }
+
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setName(product.getName());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setStock(product.getStock());
+
+        model.addAttribute("product", productDTO);
+        model.addAttribute("productId", id);
+        model.addAttribute("isEdit", true);
+        return "products/form";
     }
 }
