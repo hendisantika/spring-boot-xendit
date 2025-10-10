@@ -103,4 +103,17 @@ public class ProductWebController {
             return "redirect:/products/" + id + "/edit";
         }
     }
+
+    @GetMapping("/{id}/delete")
+    public String deleteProduct(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            productApiService.deleteProduct(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Product deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete product: " + e.getMessage());
+        }
+        return "redirect:/products";
+    }
 }
