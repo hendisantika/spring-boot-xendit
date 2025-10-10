@@ -3,8 +3,10 @@ package id.my.hendisantika.xendit.controller;
 import id.my.hendisantika.xendit.entity.Product;
 import id.my.hendisantika.xendit.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,5 +39,21 @@ public class ProductController {
         response.put("success", true);
         response.put("data", products);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getProductById(@PathVariable Long id) {
+        try {
+            Product product = productService.getProductById(id);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", product);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 }
