@@ -1,5 +1,6 @@
 package id.my.hendisantika.xendit.service;
 
+import id.my.hendisantika.xendit.dto.ProductDTO;
 import id.my.hendisantika.xendit.entity.Product;
 import id.my.hendisantika.xendit.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,15 @@ public class ProductService {
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+    }
+
+    @Transactional
+    public Product createProduct(ProductDTO productDTO) {
+        Product product = new Product();
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setStock(productDTO.getStock());
+        return productRepository.save(product);
     }
 }
