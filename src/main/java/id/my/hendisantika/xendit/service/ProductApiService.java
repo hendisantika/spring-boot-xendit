@@ -70,4 +70,17 @@ public class ProductApiService {
                 .block();
         return response != null ? response.getData() : null;
     }
+
+    public boolean deleteProduct(Long id) {
+        try {
+            webClient.delete()
+                    .uri("/api/products/{id}", id)
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
