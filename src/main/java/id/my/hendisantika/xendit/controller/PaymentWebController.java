@@ -73,4 +73,16 @@ public class PaymentWebController {
         }
         return "payments/invoice";
     }
+
+    @GetMapping("/status/{invoiceId}")
+    public String checkInvoiceStatus(@PathVariable String invoiceId, Model model) {
+        try {
+            Map<String, Object> invoiceStatus = paymentApiService.getInvoiceStatus(invoiceId);
+            model.addAttribute("invoiceStatus", invoiceStatus);
+            return "payments/status";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Failed to get invoice status: " + e.getMessage());
+            return "payments/status";
+        }
+    }
 }
