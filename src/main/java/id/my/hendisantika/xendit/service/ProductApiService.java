@@ -1,11 +1,13 @@
 package id.my.hendisantika.xendit.service;
 
 import id.my.hendisantika.xendit.dto.ApiResponse;
+import id.my.hendisantika.xendit.dto.ProductDTO;
 import id.my.hendisantika.xendit.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -43,6 +45,17 @@ public class ProductApiService {
                 .bodyToMono(new ParameterizedTypeReference<ApiResponse<Product>>() {
                 })
                 .onErrorResume(e -> Mono.empty())
+                .block();
+        return response != null ? response.getData() : null;
+    }
+
+    public Product createProduct(ProductDTO productDTO) {
+        ApiResponse<Product> response = webClient.post()
+                .uri("/api/products")
+                .bodyValue(productDTO)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<Product>>() {
+                })
                 .block();
         return response != null ? response.getData() : null;
     }
