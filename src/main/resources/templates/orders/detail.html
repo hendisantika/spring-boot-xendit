@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Order Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-shop"></i> Product Store
+        </a>
+    </div>
+</nav>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-receipt"></i> Order Details</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Order Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Order Information</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th width="40%">Order Number:</th>
+                                    <td><strong th:text="${order.orderNumber}"></strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Order Date:</th>
+                                    <td th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy HH:mm')}"></td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge bg-warning"
+                                              th:if="${order.paymentStatus.name() == 'PENDING'}">
+                                            <i class="bi bi-clock"></i> Pending Payment
+                                        </span>
+                                        <span class="badge bg-success" th:if="${order.paymentStatus.name() == 'PAID'}">
+                                            <i class="bi bi-check-circle"></i> Paid
+                                        </span>
+                                        <span class="badge bg-danger"
+                                              th:if="${order.paymentStatus.name() == 'EXPIRED'}">
+                                            <i class="bi bi-x-circle"></i> Expired
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${order.paidAt != null}">
+                                    <th>Paid At:</th>
+                                    <td th:text="${#temporals.format(order.paidAt, 'dd MMM yyyy HH:mm')}"></td>
+                                </tr>
+                                <tr th:if="${order.paymentMethod != null}">
+                                    <th>Payment Method:</th>
+                                    <td th:text="${order.paymentMethod}"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Customer Information</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th width="40%">Name:</th>
+                                    <td th:text="${order.customerName}"></td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td th:text="${order.customerEmail}"></td>
+                                </tr>
+                                <tr th:if="${order.customerPhone != null}">
+                                    <th>Phone:</th>
+                                    <td th:text="${order.customerPhone}"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Order Items -->
+                    <h5 class="mb-3">Order Items</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${order.orderItems}">
+                                <td>
+                                    <strong th:text="${item.productName}"></strong>
+                                </td>
+                                <td class="text-end">
+                                    Rp <span
+                                        th:text="${#numbers.formatDecimal(item.productPrice, 0, 'COMMA', 0, 'POINT')}"></span>
+                                </td>
+                                <td class="text-center">
+                                    <span th:text="${item.quantity}"></span>
+                                </td>
+                                <td class="text-end">
+                                    Rp <span
+                                        th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')}"></span>
+                                </td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <th class="text-end" colspan="3">Total Amount:</th>
+                                <th class="text-end">
+                                    Rp <span
+                                        th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}"></span>
+                                </th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Payment Section -->
+                    <div class="alert alert-warning"
+                         th:if="${order.paymentStatus.name() == 'PENDING' and order.xenditInvoiceUrl != null}">
+                        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Payment Pending</h5>
+                        <p class="mb-3">Please complete your payment to confirm this order.</p>
+                        <div class="d-grid gap-2">
+                            <a class="btn btn-warning btn-lg" target="_blank" th:href="${order.xenditInvoiceUrl}">
+                                <i class="bi bi-credit-card"></i> Pay Now with Xendit
+                            </a>
+                            <a class="btn btn-outline-primary" th:href="@{/orders/check-status/{id}(id=${order.id})}">
+                                <i class="bi bi-arrow-clockwise"></i> Check Payment Status
+                            </a>
+                        </div>
+                        <small class="text-muted" th:if="${order.expiredAt != null}">
+                            Invoice expires at: <span
+                                th:text="${#temporals.format(order.expiredAt, 'dd MMM yyyy HH:mm')}"></span>
+                        </small>
+                    </div>
+
+                    <div class="alert alert-success" th:if="${order.paymentStatus.name() == 'PAID'}">
+                        <h5 class="alert-heading"><i class="bi bi-check-circle"></i> Payment Successful</h5>
+                        <p class="mb-0">Thank you! Your payment has been confirmed.</p>
+                    </div>
+
+                    <div class="alert alert-danger" th:if="${order.paymentStatus.name() == 'EXPIRED'}">
+                        <h5 class="alert-heading"><i class="bi bi-x-circle"></i> Payment Expired</h5>
+                        <p class="mb-0">This payment link has expired. Please create a new order.</p>
+                    </div>
+
+                    <hr>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-outline-secondary" href="/orders">
+                            <i class="bi bi-arrow-left"></i> Back to Orders
+                        </a>
+                        <a class="btn btn-outline-primary" href="/products">
+                            <i class="bi bi-shop"></i> Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
