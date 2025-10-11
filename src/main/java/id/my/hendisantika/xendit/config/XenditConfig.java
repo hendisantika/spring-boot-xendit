@@ -2,7 +2,7 @@ package id.my.hendisantika.xendit.config;
 
 import com.xendit.Xendit;
 import jakarta.annotation.PostConstruct;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 /**

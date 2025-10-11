@@ -1,15 +1,15 @@
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17.5-alpine3.22
     container_name: xendit-postgres
     environment:
       POSTGRES_DB: xendit_db
       POSTGRES_USER: yu71
       POSTGRES_PASSWORD: 53cret
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
     networks:
       - xendit-network
 

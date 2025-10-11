@@ -49,6 +49,9 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
