@@ -24,7 +24,11 @@
                     <h4 class="mb-0"><i class="bi bi-cart-check"></i> Checkout</h4>
                 </div>
                 <div class="card-body">
-                    <form action="/payments/create-invoice" method="post" th:object="${paymentRequest}">
+                    <div class="alert alert-danger" th:if="${errorMessage}">
+                        <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <form action="/payments/process" method="post" th:object="${paymentRequest}">
                         <input th:field="*{productId}" type="hidden">
 
                         <div class="mb-3">
@@ -49,16 +53,13 @@
                                    th:field="*{customerEmail}" type="email">
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label" for="paymentMethod">Payment Method <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select" id="paymentMethod" required th:field="*{paymentMethod}">
-                                <option value="BANK_TRANSFER">Bank Transfer</option>
-                                <option value="EWALLET">E-Wallet (OVO, DANA, LinkAja)</option>
-                                <option value="CREDIT_CARD">Credit Card</option>
-                                <option value="RETAIL_OUTLET">Retail Outlet (Alfamart, Indomaret)</option>
-                                <option value="QRIS">QRIS</option>
-                            </select>
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle"></i>
+                                After clicking "Proceed to Payment", an order will be created and you will be redirected
+                                to
+                                the Xendit payment page to complete your payment.
+                            </small>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
