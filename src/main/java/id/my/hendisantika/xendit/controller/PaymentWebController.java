@@ -1,9 +1,11 @@
 package id.my.hendisantika.xendit.controller;
 
 import id.my.hendisantika.xendit.dto.PaymentRequestDTO;
+import id.my.hendisantika.xendit.entity.Order;
 import id.my.hendisantika.xendit.entity.Product;
-import id.my.hendisantika.xendit.service.PaymentApiService;
-import id.my.hendisantika.xendit.service.ProductApiService;
+import id.my.hendisantika.xendit.service.OrderService;
+import id.my.hendisantika.xendit.service.ProductService;
+import id.my.hendisantika.xendit.service.XenditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,57 +34,46 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PaymentWebController {
 
-    private final PaymentApiService paymentApiService;
-    private final ProductApiService productApiService;
+    private final OrderService orderService;
+    private final ProductService productService;
+    private final XenditService xenditService;
 
     @GetMapping("/checkout/{productId}")
     public String showCheckoutForm(@PathVariable Long productId, Model model) {
-        Product product = productApiService.getProductById(productId);
-        if (product == null) {
-            return "redirect:/products";
-        }
+        Product product = productService.getProductById(productId);
 
         PaymentRequestDTO paymentRequest = new PaymentRequestDTO();
         paymentRequest.setProductId(productId);
         paymentRequest.setQuantity(1);
-        paymentRequest.setPaymentMethod("BANK_TRANSFER");
 
         model.addAttribute("product", product);
         model.addAttribute("paymentRequest", paymentRequest);
         return "payments/checkout";
     }
 
-    @PostMapping("/create-invoice")
-    public String createInvoice(
+    @PostMapping("/process")
+    public String processPayment(
             @ModelAttribute PaymentRequestDTO paymentRequest,
             RedirectAttributes redirectAttributes) {
         try {
-            Map<String, Object> invoiceData = paymentApiService.createInvoice(paymentRequest);
+            // Create order
+            Order order = orderService.createOrder(
+                    paymentRequest.getProductId(),
+                    paymentRequest.getQuantity(),
+                    paymentRequest.getCustomerName(),
+                    paymentRequest.getCustomerEmail(),
+                    paymentRequest.getCustomerName() // Using name as phone temporarily
+            );
+
+            // Create Xendit invoice
+            Map<String, Object> invoiceData = xenditService.createInvoiceForOrder(order);
+
+            redirectAttributes.addFlashAttribute("order", order);
             redirectAttributes.addFlashAttribute("invoiceData", invoiceData);
-            return "redirect:/payments/invoice";
+            return "redirect:/orders/" + order.getId();
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create invoice: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to process payment: " + e.getMessage());
             return "redirect:/payments/checkout/" + paymentRequest.getProductId();
-        }
-    }
-
-    @GetMapping("/invoice")
-    public String showInvoice(Model model) {
-        if (!model.containsAttribute("invoiceData")) {
-            return "redirect:/products";
-        }
-        return "payments/invoice";
-    }
-
-    @GetMapping("/status/{invoiceId}")
-    public String checkInvoiceStatus(@PathVariable String invoiceId, Model model) {
-        try {
-            Map<String, Object> invoiceStatus = paymentApiService.getInvoiceStatus(invoiceId);
-            model.addAttribute("invoiceStatus", invoiceStatus);
-            return "payments/status";
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", "Failed to get invoice status: " + e.getMessage());
-            return "payments/status";
         }
     }
 }
