@@ -1,8 +1,6 @@
 package id.my.hendisantika.xendit.controller;
 
-import id.my.hendisantika.xendit.dto.PaymentRequestDTO;
 import id.my.hendisantika.xendit.service.XenditService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,23 +34,8 @@ public class PaymentController {
 
     private final XenditService xenditService;
 
-    @PostMapping("/create-invoice")
-    public ResponseEntity<Map<String, Object>> createInvoice(
-            @Valid @RequestBody PaymentRequestDTO paymentRequest) {
-        try {
-            Map<String, Object> invoiceData = xenditService.createInvoice(paymentRequest);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Invoice created successfully");
-            response.put("data", invoiceData);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (RuntimeException e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-    }
+    // Legacy method - kept for API compatibility but not used in new flow
+    // New flow uses OrderService and redirects to order detail page
 
     @GetMapping("/invoice/{invoiceId}")
     public ResponseEntity<Map<String, Object>> getInvoiceStatus(@PathVariable String invoiceId) {
@@ -76,14 +59,7 @@ public class PaymentController {
         // You should verify the callback token here for security
         log.info("Received webhook: {}", payload);
 
-        // Process the payment status update
-        String status = (String) payload.get("status");
-        String externalId = (String) payload.get("external_id");
-
-        if ("PAID".equals(status)) {
-            // Handle successful payment
-            log.info("Payment successful for: {}", externalId);
-        }
+        xenditService.handleWebhook(payload);
 
         return ResponseEntity.ok("OK");
     }
