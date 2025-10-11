@@ -2,12 +2,12 @@ package id.my.hendisantika.xendit.service;
 
 import com.xendit.exception.XenditException;
 import com.xendit.model.Invoice;
-import id.my.hendisantika.xendit.dto.PaymentRequestDTO;
-import id.my.hendisantika.xendit.entity.Product;
+import id.my.hendisantika.xendit.entity.Order;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,30 +22,34 @@ import java.util.Map;
  * Time: 06.09
  * To change this template use File | Settings | File Templates.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class XenditService {
 
-    private final ProductService productService;
+    private final OrderService orderService;
 
-    public Map<String, Object> createInvoice(PaymentRequestDTO paymentRequest) {
+    public Map<String, Object> createInvoiceForOrder(Order order) {
         try {
-            Product product = productService.getProductById(paymentRequest.getProductId());
-
-            BigDecimal totalAmount = product.getPrice()
-                    .multiply(BigDecimal.valueOf(paymentRequest.getQuantity()));
-
             Map<String, Object> params = new HashMap<>();
-            params.put("external_id", "invoice_" + System.currentTimeMillis());
-            params.put("amount", totalAmount);
-            params.put("payer_email", paymentRequest.getCustomerEmail());
-            params.put("description", "Payment for " + paymentRequest.getQuantity() +
-                    "x " + product.getName());
+            params.put("external_id", order.getOrderNumber());
+            params.put("amount", order.getTotalAmount());
+            params.put("payer_email", order.getCustomerEmail());
+            params.put("description", "Payment for Order " + order.getOrderNumber());
             params.put("currency", "IDR");
 
             Invoice invoice = Invoice.create(params);
 
-            productService.reduceStock(product.getId(), paymentRequest.getQuantity());
+            // Update order with Xendit info - set expiry to 24 hours from now
+            LocalDateTime expiredAt = LocalDateTime.now().plusHours(24);
+            orderService.updateOrderWithXenditInfo(
+                    order.getId(),
+                    invoice.getId(),
+                    invoice.getInvoiceUrl(),
+                    expiredAt
+            );
+
+            log.info("Xendit invoice created for order {}: {}", order.getOrderNumber(), invoice.getId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("invoice_id", invoice.getId());
@@ -53,12 +57,13 @@ public class XenditService {
             response.put("external_id", invoice.getExternalId());
             response.put("status", invoice.getStatus());
             response.put("amount", invoice.getAmount());
-            response.put("product_name", product.getName());
-            response.put("quantity", paymentRequest.getQuantity());
+            response.put("expired_at", expiredAt);
+            response.put("order_number", order.getOrderNumber());
 
             return response;
 
         } catch (XenditException e) {
+            log.error("Failed to create Xendit invoice for order {}: {}", order.getOrderNumber(), e.getMessage());
             throw new RuntimeException("Failed to create Xendit invoice: " + e.getMessage());
         }
     }
@@ -67,17 +72,59 @@ public class XenditService {
         try {
             Invoice invoice = Invoice.getById(invoiceId);
 
+            // Update order payment status based on invoice status
+            Order.PaymentStatus paymentStatus;
+            switch (invoice.getStatus()) {
+                case "PAID":
+                    paymentStatus = Order.PaymentStatus.PAID;
+                    break;
+                case "EXPIRED":
+                    paymentStatus = Order.PaymentStatus.EXPIRED;
+                    break;
+                default:
+                    paymentStatus = Order.PaymentStatus.PENDING;
+            }
+            orderService.updateOrderPaymentStatus(invoiceId, paymentStatus, invoice.getPaymentMethod());
+
             Map<String, Object> response = new HashMap<>();
             response.put("invoice_id", invoice.getId());
             response.put("external_id", invoice.getExternalId());
             response.put("status", invoice.getStatus());
             response.put("amount", invoice.getAmount());
             response.put("paid_at", invoice.getPaidAt());
+            response.put("payment_method", invoice.getPaymentMethod());
 
             return response;
 
         } catch (XenditException e) {
+            log.error("Failed to get invoice status: {}", e.getMessage());
             throw new RuntimeException("Failed to get invoice status: " + e.getMessage());
+        }
+    }
+
+    public void handleWebhook(Map<String, Object> payload) {
+        try {
+            String invoiceId = (String) payload.get("id");
+            String status = (String) payload.get("status");
+            String paymentMethod = (String) payload.get("payment_method");
+
+            Order.PaymentStatus paymentStatus;
+            switch (status) {
+                case "PAID":
+                    paymentStatus = Order.PaymentStatus.PAID;
+                    break;
+                case "EXPIRED":
+                    paymentStatus = Order.PaymentStatus.EXPIRED;
+                    break;
+                default:
+                    paymentStatus = Order.PaymentStatus.PENDING;
+            }
+
+            orderService.updateOrderPaymentStatus(invoiceId, paymentStatus, paymentMethod);
+            log.info("Webhook processed for invoice {}: {}", invoiceId, status);
+
+        } catch (Exception e) {
+            log.error("Failed to process webhook: {}", e.getMessage());
         }
     }
 }
