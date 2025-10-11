@@ -24,6 +24,19 @@
                     <h4 class="mb-0"><i class="bi bi-box-seam"></i> Product Details</h4>
                 </div>
                 <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img class="img-fluid rounded"
+                             style="max-height: 400px; object-fit: contain;"
+                             th:alt="${product.name}"
+                             th:if="${product.imageUrl != null}"
+                             th:src="${product.imageUrl}">
+                        <div class="bg-secondary d-flex align-items-center justify-content-center rounded"
+                             style="height: 400px;"
+                             th:if="${product.imageUrl == null}">
+                            <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
+                        </div>
+                    </div>
+
                     <h3 class="mb-3" th:text="${product.name}">Product Name</h3>
 
                     <div class="mb-3">
